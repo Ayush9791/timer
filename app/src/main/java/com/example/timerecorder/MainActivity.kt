@@ -9,6 +9,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -24,6 +25,9 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -35,12 +39,13 @@ import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 
-private val Bg = Color(0xFF1E1E1E)
-private val Black = Color.Black
-private val Digits = Color(0xFFDADADA)
-private val Muted = Color(0xFF999999)
-private val Red = Color(0xFFB00000)
-private val Card = Color(0xFF292929)
+private val Bg = Color(0xFFF7F4EF)
+private val Black = Color(0xFFE8EEE8)
+private val Ink = Color(0xFF34443E)
+private val Digits = Ink
+private val Muted = Color(0xFF7D8982)
+private val Red = Color(0xFFB96F63)
+private val Card = Color(0xFFFFFFFF)
 
 private data class Session(val duration: Long, val timestamp: Long, val subject: String, val notes: String)
 
@@ -137,7 +142,7 @@ private fun RecorderApp() {
         clearTimer()
     }
 
-    MaterialTheme(colorScheme = darkColorScheme(primary = Red, background = Bg, surface = Card, onSurface = Color.White)) {
+    MaterialTheme(colorScheme = darkColorScheme(primary = Red, background = Bg, surface = Card, onSurface = Ink)) {
         if (timerMode) {
             Column(Modifier.fillMaxSize().background(Bg).padding(horizontal = 20.dp, vertical = 8.dp),
                 horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
@@ -147,16 +152,30 @@ private fun RecorderApp() {
                     verticalAlignment = Alignment.CenterVertically) {
                     Button(onClick = { start() }, modifier = Modifier.weight(1f), enabled = !running,
                         shape = CircleShape, colors = ButtonDefaults.buttonColors(containerColor = Red,
-                            disabledContainerColor = Color(0xFF601010)), contentPadding = PaddingValues(vertical = 14.dp)) {
+                            disabledContainerColor = Color(0xFFE6C9C3)), contentPadding = PaddingValues(vertical = 14.dp)) {
                         Text(if (elapsed > 0L) "Start / Resume" else "Start", maxLines = 1)
                     }
                     OutlinedButton(onClick = { pause() }, modifier = Modifier.weight(1f), enabled = running,
-                        shape = CircleShape, colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White),
+                        shape = CircleShape, colors = ButtonDefaults.outlinedButtonColors(contentColor = Ink),
                         contentPadding = PaddingValues(vertical = 14.dp)) { Text("Pause") }
-                    OutlinedButton(onClick = {}, modifier = Modifier.weight(1f).pointerInput(Unit) {
-                        detectTapGestures(onTap = { clearTimer() }, onLongPress = { activity?.finish() })
-                    }, shape = CircleShape, colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFFFF7777)),
-                        contentPadding = PaddingValues(vertical = 14.dp)) { Text("Reset") }
+                    Box(
+                        modifier = Modifier.weight(1f).height(48.dp)
+                            .background(Color(0xFFF6E7E3), CircleShape)
+                            .border(1.dp, Color(0xFFE2C4BD), CircleShape)
+                            .pointerInput(Unit) {
+                                detectTapGestures(
+                                    onTap = { clearTimer() },
+                                    onLongPress = { activity?.finish() }
+                                )
+                            }
+                            .semantics {
+                                role = Role.Button
+                                contentDescription = "Reset timer. Long press to close the app."
+                            },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text("Reset", color = Red, fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
+                    }
                     Button(onClick = { finish() }, modifier = Modifier.weight(1f), shape = CircleShape,
                         colors = ButtonDefaults.buttonColors(containerColor = Red), contentPadding = PaddingValues(vertical = 14.dp)) {
                         Text("Finish", maxLines = 1)
@@ -168,7 +187,7 @@ private fun RecorderApp() {
             Modifier.fillMaxSize().background(Bg).verticalScroll(rememberScrollState()).padding(horizontal = 18.dp, vertical = 22.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text("STUDY TIME RECORDER", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold, letterSpacing = 2.4.sp)
+            Text("STUDY TIME RECORDER", color = Ink, fontSize = 12.sp, fontWeight = FontWeight.Bold, letterSpacing = 2.4.sp)
             Text("Track the hours. Improve the process.", color = Muted, fontSize = 11.sp, modifier = Modifier.padding(top = 4.dp, bottom = 20.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                 Tab("STOPWATCH", page == 0) { page = 0 }
@@ -188,7 +207,7 @@ private fun RecorderApp() {
                         DigitalDisplay(elapsed, Modifier.fillMaxWidth().height(100.dp))
                         Spacer(Modifier.height(16.dp))
                         Text(if (running) "FOCUS IN PROGRESS" else if (elapsed > 0L) "PAUSED" else "READY TO FOCUS",
-                            color = if (running) Color(0xFFFF6464) else Muted, fontSize = 10.sp, letterSpacing = 1.5.sp)
+                            color = if (running) Color(0xFFB96F63) else Muted, fontSize = 10.sp, letterSpacing = 1.5.sp)
                         Spacer(Modifier.height(22.dp))
                         Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
                             Button(
@@ -198,12 +217,12 @@ private fun RecorderApp() {
                             ) { Text(if (elapsed > 0L) "Resume" else "Start", fontSize = 12.sp) }
                             OutlinedButton(
                                 onClick = { pause() }, enabled = running, shape = CircleShape,
-                                colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White, disabledContentColor = Color(0xFF777777)),
+                                colors = ButtonDefaults.outlinedButtonColors(contentColor = Ink, disabledContentColor = Color(0xFFA0AAA4)),
                                 contentPadding = PaddingValues(horizontal = 15.dp, vertical = 14.dp)
                             ) { Text("Pause", fontSize = 12.sp) }
                             OutlinedButton(
                                 onClick = { finish() }, shape = CircleShape,
-                                colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White),
+                                colors = ButtonDefaults.outlinedButtonColors(contentColor = Ink),
                                 contentPadding = PaddingValues(horizontal = 10.dp, vertical = 14.dp)
                             ) { Text("Finish & Save", fontSize = 11.sp) }
                         }
@@ -244,12 +263,12 @@ private fun RecorderApp() {
                     if (subjects.isEmpty()) EmptyState() else subjects.forEach { entry ->
                         Column(Modifier.fillMaxWidth().background(Card, RoundedCornerShape(14.dp)).padding(13.dp)) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text(entry.first, color = Color.White, fontSize = 12.sp, modifier = Modifier.weight(1f))
+                                Text(entry.first, color = Ink, fontSize = 12.sp, modifier = Modifier.weight(1f))
                                 Text(human(entry.second), color = Digits, fontWeight = FontWeight.Bold, fontSize = 12.sp)
                             }
                             Spacer(Modifier.height(8.dp))
                             val fraction = entry.second.toFloat() / subjects.sumOf { it.second }.coerceAtLeast(1L).toFloat()
-                            Box(Modifier.fillMaxWidth().height(5.dp).background(Color(0xFF444444), CircleShape)) {
+                            Box(Modifier.fillMaxWidth().height(5.dp).background(Color(0xFFDDE4DE), CircleShape)) {
                                 Box(Modifier.fillMaxWidth(fraction.coerceIn(0f, 1f)).fillMaxHeight().background(Red, CircleShape))
                             }
                         }
@@ -259,14 +278,14 @@ private fun RecorderApp() {
                 }
                 else -> {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text("SESSION HISTORY", color = Color.White, fontSize = 12.sp, letterSpacing = 1.3.sp, modifier = Modifier.weight(1f))
-                        if (saved.isNotEmpty()) TextButton(onClick = { saved = emptyList(); persist() }) { Text("Clear all", color = Color(0xFFE36A6A)) }
+                        Text("SESSION HISTORY", color = Ink, fontSize = 12.sp, letterSpacing = 1.3.sp, modifier = Modifier.weight(1f))
+                        if (saved.isNotEmpty()) TextButton(onClick = { saved = emptyList(); persist() }) { Text("Clear all", color = Color(0xFFB96F63)) }
                     }
                     if (saved.isEmpty()) EmptyState() else saved.forEach { SessionItem(it) }
                 }
             }
             Spacer(Modifier.height(24.dp))
-            Text("YOUR STUDY DATA STAYS ON THIS DEVICE", color = Color(0xFF666666), fontSize = 9.sp, letterSpacing = 1.sp)
+            Text("YOUR STUDY DATA STAYS ON THIS DEVICE", color = Color(0xFF89948D), fontSize = 9.sp, letterSpacing = 1.sp)
         }
         }
 
@@ -291,8 +310,8 @@ private fun RecorderApp() {
                 confirmButton = { TextButton(onClick = { save() }) { Text("Save session", color = Red) } },
                 dismissButton = { TextButton(onClick = { clearTimer() }) { Text("Discard", color = Muted) } },
                 containerColor = Card,
-                titleContentColor = Color.White,
-                textContentColor = Color.White
+                titleContentColor = Ink,
+                textContentColor = Ink
             )
         }
     }
@@ -302,20 +321,20 @@ private fun RecorderApp() {
 private fun Tab(label: String, active: Boolean, click: () -> Unit) {
     TextButton(
         onClick = click, shape = CircleShape,
-        colors = ButtonDefaults.textButtonColors(containerColor = if (active) Color(0xFF383838) else Color.Transparent,
-            contentColor = if (active) Color.White else Muted),
+        colors = ButtonDefaults.textButtonColors(containerColor = if (active) Color(0xFFDCE5DD) else Color.Transparent,
+            contentColor = if (active) Ink else Muted),
         contentPadding = PaddingValues(horizontal = 10.dp, vertical = 6.dp)
     ) { Text(label, fontSize = 9.sp, fontWeight = if (active) FontWeight.Bold else FontWeight.Normal, letterSpacing = 0.6.sp) }
 }
 @Composable private fun Section(text: String) {
-    Text(text, color = Color.White, fontSize = 11.sp, letterSpacing = 1.2.sp, fontWeight = FontWeight.SemiBold,
+    Text(text, color = Ink, fontSize = 11.sp, letterSpacing = 1.2.sp, fontWeight = FontWeight.SemiBold,
         modifier = Modifier.fillMaxWidth().padding(bottom = 10.dp))
 }
 @Composable private fun Metric(label: String, value: String, modifier: Modifier = Modifier) {
     Column(modifier.background(Card, RoundedCornerShape(14.dp)).padding(12.dp)) {
         Text(label, color = Muted, fontSize = 9.sp, letterSpacing = 0.6.sp)
         Spacer(Modifier.height(6.dp))
-        Text(value, color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+        Text(value, color = Ink, fontSize = 16.sp, fontWeight = FontWeight.Bold)
     }
 }
 @Composable private fun SessionItem(item: Session) {
@@ -324,7 +343,7 @@ private fun Tab(label: String, active: Boolean, click: () -> Unit) {
         Box(Modifier.size(7.dp).background(Red, CircleShape))
         Spacer(Modifier.width(9.dp))
         Column(Modifier.weight(1f)) {
-            Text(item.subject, color = Color.White, fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
+            Text(item.subject, color = Ink, fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
             Text(dateText(item.timestamp), color = Muted, fontSize = 10.sp)
             if (item.notes.isNotBlank()) Text(item.notes, color = Color.LightGray, fontSize = 11.sp)
         }
@@ -334,7 +353,7 @@ private fun Tab(label: String, active: Boolean, click: () -> Unit) {
 }
 @Composable private fun EmptyState() {
     Column(Modifier.fillMaxWidth().background(Card, RoundedCornerShape(14.dp)).padding(22.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-        Text("No study sessions yet", color = Color.White, fontSize = 13.sp)
+        Text("No study sessions yet", color = Ink, fontSize = 13.sp)
         Spacer(Modifier.height(5.dp))
         Text("Start the stopwatch, then finish and save a session.", color = Muted, fontSize = 10.sp)
     }
@@ -378,7 +397,7 @@ private fun DrawScope.drawNumber(n: Int, x: Float, w: Float, h: Float) {
     val paths = mapOf('a' to hz(x + inset, 0f, w - 2 * inset), 'g' to hz(x + inset, mid - t / 2, w - 2 * inset),
         'd' to hz(x + inset, h - t, w - 2 * inset), 'f' to vt(x, t * .75f, half),
         'b' to vt(x + w - t, t * .75f, half), 'e' to vt(x, mid, half), 'c' to vt(x + w - t, mid, half))
-    paths.forEach { (key, path) -> drawPath(path, if (active.contains(key)) Digits else Color(0xFF252525)) }
+    paths.forEach { (key, path) -> drawPath(path, if (active.contains(key)) Digits else Color(0xFFD4DDD6)) }
 }
 private fun human(ms: Long): String {
     val total = ms.coerceAtLeast(0L) / 60000L
