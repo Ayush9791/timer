@@ -46,15 +46,15 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
-      - name: Publish v1.0.3 GitHub Release
+      - name: Publish v1.0.4 GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v1.0.3
-          name: v1.0.3
+          tag_name: v1.0.4
+          name: v1.0.4
           body: |
-            Study Time Recorder APK release v1.0.3.
+            Study Time Recorder APK release v1.0.4.
 
-            Fixes Reset tap and long-press gestures, and refreshes the interface with a soft warm-neutral and sage palette.
+            Adds a new adaptive launcher icon and keeps the same Android application ID with a higher version code for in-place updates where the APK signing certificate matches.
           files: app/build/outputs/apk/debug/app-debug.apk
           fail_on_unmatched_files: true
         env:
