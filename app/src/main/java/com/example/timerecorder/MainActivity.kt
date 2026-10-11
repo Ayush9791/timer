@@ -71,7 +71,7 @@ private fun RecorderApp() {
     var notes by remember { mutableStateOf("") }
     var validation by remember { mutableStateOf(false) }
     val activity = context as? Activity
-    val timerMode = running || elapsed > 0L || showSave
+    val timerMode = running || (elapsed > 0L && !showSave)
 
     fun setTimerDisplay(enabled: Boolean) {
         activity?.requestedOrientation = if (enabled) ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE else ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
@@ -115,6 +115,7 @@ private fun RecorderApp() {
     fun finish() {
         loggedMs = carried + if (running) SystemClock.elapsedRealtime() - segmentStart else 0L
         running = false
+        setTimerDisplay(false)
         elapsed = loggedMs
         loggedAt = if (wallStart > 0L) wallStart else System.currentTimeMillis()
         minutes = String.format(Locale.US, "%.2f", loggedMs / 60000.0)
