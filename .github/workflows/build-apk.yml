@@ -46,15 +46,15 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
-      - name: Publish v1.0.4 GitHub Release
+      - name: Publish v1.0.5 GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v1.0.4
-          name: v1.0.4
+          tag_name: v1.0.5
+          name: v1.0.5
           body: |
-            Study Time Recorder APK release v1.0.4.
+            Study Time Recorder APK release v1.0.5.
 
-            Adds a new adaptive launcher icon and keeps the same Android application ID with a higher version code for in-place updates where the APK signing certificate matches.
+            Refreshes the launcher icon. In-place updates require the same application ID and signing certificate as the installed version.
           files: app/build/outputs/apk/debug/app-debug.apk
           fail_on_unmatched_files: true
         env:
