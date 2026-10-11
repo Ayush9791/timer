@@ -46,15 +46,15 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
-      - name: Publish v1.0.1 GitHub Release
+      - name: Publish v1.0.2 GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v1.0.1
-          name: v1.0.1
+          tag_name: v1.0.2
+          name: v1.0.2
           body: |
-            Study Time Recorder APK release v1.0.1.
+            Study Time Recorder APK release v1.0.2.
 
-            Includes the full-screen landscape timer and Reset control.
+            Includes the minimal full-screen landscape timer, Start/Pause/Reset/Finish controls, and orientation handling fixes.
           files: app/build/outputs/apk/debug/app-debug.apk
           fail_on_unmatched_files: true
         env:
