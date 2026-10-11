@@ -1,11 +1,15 @@
 package com.example.timerecorder
 
+import android.app.Activity
+import android.content.pm.ActivityInfo
 import android.os.Bundle
 import android.os.SystemClock
+import android.view.View
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -15,6 +19,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
@@ -42,6 +47,7 @@ private data class Session(val duration: Long, val timestamp: Long, val subject:
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
         setContent { RecorderApp() }
     }
 }
@@ -64,6 +70,16 @@ private fun RecorderApp() {
     var minutes by remember { mutableStateOf("0") }
     var notes by remember { mutableStateOf("") }
     var validation by remember { mutableStateOf(false) }
+    val activity = context as? Activity
+    val timerMode = running || elapsed > 0L || showSave
+
+    fun setTimerDisplay(enabled: Boolean) {
+        activity?.requestedOrientation = if (enabled) ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE else ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+        @Suppress("DEPRECATION")
+        activity?.window?.decorView?.systemUiVisibility = if (enabled)
+            (View.SYSTEM_UI_FLAG_FULLSCREEN or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY or View.SYSTEM_UI_FLAG_LAYOUT_STABLE)
+        else View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+    }
 
     LaunchedEffect(running) {
         while (running) {
@@ -76,6 +92,7 @@ private fun RecorderApp() {
         if (!running) {
             if (carried == 0L) wallStart = System.currentTimeMillis()
             segmentStart = SystemClock.elapsedRealtime()
+            setTimerDisplay(true)
             running = true
         }
     }
@@ -92,6 +109,8 @@ private fun RecorderApp() {
         elapsed = 0L
         segmentStart = 0L
         wallStart = 0L
+        showSave = false
+        setTimerDisplay(false)
     }
     fun finish() {
         loggedMs = carried + if (running) SystemClock.elapsedRealtime() - segmentStart else 0L
@@ -118,6 +137,34 @@ private fun RecorderApp() {
     }
 
     MaterialTheme(colorScheme = darkColorScheme(primary = Red, background = Bg, surface = Card, onSurface = Color.White)) {
+        if (timerMode) {
+            Column(Modifier.fillMaxSize().background(Bg).padding(horizontal = 24.dp, vertical = 10.dp),
+                horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+                Text("STUDY TIME RECORDER", color = Muted, fontSize = 10.sp, letterSpacing = 2.sp)
+                Spacer(Modifier.height(6.dp))
+                DigitalDisplay(elapsed, Modifier.fillMaxWidth().weight(1f))
+                Text(if (running) "FOCUS IN PROGRESS" else if (elapsed > 0L) "PAUSED" else "READY TO FOCUS",
+                    color = if (running) Color(0xFFFF6464) else Muted, fontSize = 10.sp, letterSpacing = 1.5.sp)
+                Spacer(Modifier.height(8.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Button(onClick = { start() }, enabled = !running, shape = CircleShape,
+                        colors = ButtonDefaults.buttonColors(containerColor = Red, disabledContainerColor = Color(0xFF601010))) {
+                        Text(if (elapsed > 0L) "Resume" else "Start")
+                    }
+                    OutlinedButton(onClick = { pause() }, enabled = running, shape = CircleShape,
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White)) { Text("Pause") }
+                    OutlinedButton(onClick = {}, modifier = Modifier.pointerInput(Unit) {
+                        detectTapGestures(onTap = { clearTimer() }, onLongPress = { activity?.finish() })
+                    }, shape = CircleShape, colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFFFF7777))) {
+                        Text("Reset", fontWeight = FontWeight.Bold)
+                    }
+                    Button(onClick = { finish() }, shape = CircleShape, colors = ButtonDefaults.buttonColors(containerColor = Red)) {
+                        Text("Finish & Save")
+                    }
+                }
+                Text("Tap Reset to clear · Hold Reset to close", color = Muted, fontSize = 10.sp, modifier = Modifier.padding(top = 6.dp))
+            }
+        } else {
         Column(
             Modifier.fillMaxSize().background(Bg).verticalScroll(rememberScrollState()).padding(horizontal = 18.dp, vertical = 22.dp),
             horizontalAlignment = Alignment.CenterHorizontally
@@ -222,6 +269,7 @@ private fun RecorderApp() {
             Spacer(Modifier.height(24.dp))
             Text("YOUR STUDY DATA STAYS ON THIS DEVICE", color = Color(0xFF666666), fontSize = 9.sp, letterSpacing = 1.sp)
         }
+        }
 
         if (showSave) {
             AlertDialog(
@@ -242,7 +290,7 @@ private fun RecorderApp() {
                     }
                 },
                 confirmButton = { TextButton(onClick = { save() }) { Text("Save session", color = Red) } },
-                dismissButton = { TextButton(onClick = { showSave = false; clearTimer() }) { Text("Discard", color = Muted) } },
+                dismissButton = { TextButton(onClick = { clearTimer() }) { Text("Discard", color = Muted) } },
                 containerColor = Card,
                 titleContentColor = Color.White,
                 textContentColor = Color.White
