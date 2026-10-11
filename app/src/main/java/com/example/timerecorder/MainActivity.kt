@@ -138,31 +138,29 @@ private fun RecorderApp() {
 
     MaterialTheme(colorScheme = darkColorScheme(primary = Red, background = Bg, surface = Card, onSurface = Color.White)) {
         if (timerMode) {
-            Column(Modifier.fillMaxSize().background(Bg).padding(horizontal = 24.dp, vertical = 10.dp),
+            Column(Modifier.fillMaxSize().background(Bg).padding(horizontal = 20.dp, vertical = 8.dp),
                 horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-                Text("STUDY TIME RECORDER", color = Muted, fontSize = 10.sp, letterSpacing = 2.sp)
-                Spacer(Modifier.height(6.dp))
                 DigitalDisplay(elapsed, Modifier.fillMaxWidth().weight(1f))
-                Text(if (running) "FOCUS IN PROGRESS" else if (elapsed > 0L) "PAUSED" else "READY TO FOCUS",
-                    color = if (running) Color(0xFFFF6464) else Muted, fontSize = 10.sp, letterSpacing = 1.5.sp)
-                Spacer(Modifier.height(8.dp))
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Button(onClick = { start() }, enabled = !running, shape = CircleShape,
-                        colors = ButtonDefaults.buttonColors(containerColor = Red, disabledContainerColor = Color(0xFF601010))) {
-                        Text(if (elapsed > 0L) "Resume" else "Start")
+                Spacer(Modifier.height(12.dp))
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    verticalAlignment = Alignment.CenterVertically) {
+                    Button(onClick = { start() }, modifier = Modifier.weight(1f), enabled = !running,
+                        shape = CircleShape, colors = ButtonDefaults.buttonColors(containerColor = Red,
+                            disabledContainerColor = Color(0xFF601010)), contentPadding = PaddingValues(vertical = 14.dp)) {
+                        Text(if (elapsed > 0L) "Start / Resume" else "Start", maxLines = 1)
                     }
-                    OutlinedButton(onClick = { pause() }, enabled = running, shape = CircleShape,
-                        colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White)) { Text("Pause") }
-                    OutlinedButton(onClick = {}, modifier = Modifier.pointerInput(Unit) {
+                    OutlinedButton(onClick = { pause() }, modifier = Modifier.weight(1f), enabled = running,
+                        shape = CircleShape, colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White),
+                        contentPadding = PaddingValues(vertical = 14.dp)) { Text("Pause") }
+                    OutlinedButton(onClick = {}, modifier = Modifier.weight(1f).pointerInput(Unit) {
                         detectTapGestures(onTap = { clearTimer() }, onLongPress = { activity?.finish() })
-                    }, shape = CircleShape, colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFFFF7777))) {
-                        Text("Reset", fontWeight = FontWeight.Bold)
-                    }
-                    Button(onClick = { finish() }, shape = CircleShape, colors = ButtonDefaults.buttonColors(containerColor = Red)) {
-                        Text("Finish & Save")
+                    }, shape = CircleShape, colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFFFF7777)),
+                        contentPadding = PaddingValues(vertical = 14.dp)) { Text("Reset") }
+                    Button(onClick = { finish() }, modifier = Modifier.weight(1f), shape = CircleShape,
+                        colors = ButtonDefaults.buttonColors(containerColor = Red), contentPadding = PaddingValues(vertical = 14.dp)) {
+                        Text("Finish", maxLines = 1)
                     }
                 }
-                Text("Tap Reset to clear · Hold Reset to close", color = Muted, fontSize = 10.sp, modifier = Modifier.padding(top = 6.dp))
             }
         } else {
         Column(
